@@ -1,14 +1,19 @@
 # This is a sample Python script.
 from tkinter import *
+from GUI import *
+from data_check import *
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
 
 root = Tk()
-myButton = Button(root, text="Start Game")
+data = get_data(root)
 root.mainloop()
-
+del root
+root = Tk()
+main_window = Main_field(root, data)
+root.mainloop()
 
 # TODO: losowe rozmieszczenie min
 
