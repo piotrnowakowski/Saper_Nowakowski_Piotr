@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 import tkinter
 
 class get_data():
@@ -25,10 +26,12 @@ class get_data():
         self.width = 0
         self.len_ = 0
         self.mines = 0
-        Start_game_button = Button(tk, text="Start Game", command=[self.get_attributes(), tk.destroy]).pack()
+        self.tk = tk
+        start_game_button = Button(tk, text="Start Game", command=lambda: [self.get_attributes()]).pack()
 
     def get_attributes(self):
         try:
+            #width = width_var.get()
             width = int(width_var.get())
             len_ = int(len_var.get())
             mines = int(mines_var.get())
@@ -43,7 +46,8 @@ class get_data():
             self.width = width
             self.len_ = len_
             self.mines = mines
+            self.tk.destroy()
         except ValueError as er:
-            print(er)
+            messagebox.showinfo(message=er)
         except EXCEPTION as ex:
-            print(ex)
+            messagebox.showinfo(message=ex)
