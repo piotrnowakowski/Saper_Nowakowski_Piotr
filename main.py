@@ -12,11 +12,10 @@ def main():
     root = Tk()
     data = get_data(root)
     root.mainloop()
-    #del root
+    del root
     root = Tk()
     main_window = Main_field(root, data)
     root.mainloop()
-    del root, main_window
     quit()
 main()
 

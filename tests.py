@@ -124,13 +124,12 @@ class Minesweeper_tests(unittest.TestCase):
 
 
 # TODO Wygranie gry przez oznaczenie wszystkich pól z minami
-    def testShouldEndWhenAllClicked(self):
+    def testShouldEndWhenAllFlagged(self):
         root = Tk()
         data = get_data(root)
         data.validate(5, 5, 2)
         main_window = Main_field(root, data)
         anserw = 0
-
         for i in main_window.tiles.values():
             for tile in i.values():
                 if tile["isMine"] == True and tile["state"] != main_window.flagged:
