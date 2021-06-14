@@ -191,8 +191,11 @@ class Main_field():
                 self.clearTile(tile, queue)
 
     def clearTile(self, tile, queue):
-        if tile["state"] != self.nonclicked:
+        if tile["state"] != self.nonclicked and tile["state"] != self.flagged:
             return
+        if tile["state"] == self.flagged:
+            self.flagCount -= 1
+            self.refreshLabels()
         if tile["mines"] == 0:
             tile["button"].config(image=self.images["click"])
             queue.append(tile["id"])
