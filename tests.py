@@ -138,7 +138,7 @@ class Minesweeper_tests(unittest.TestCase):
                         self.assertEqual(anserw, "Ended")
 
 # TODO Próba oznaczenia sprawdzonego pola - oczekiwane niepowodzenie,
-    def testShoulCountFlags(self):
+    def testShouldNotCountFlags(self):
         """Testuje czy licznik oznaczeń nie wzrośnie po kliknięciu na sprawdzone pole"""
         root = Tk()
         data = get_data(root)
