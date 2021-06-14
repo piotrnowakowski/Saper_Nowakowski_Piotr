@@ -44,38 +44,40 @@ class Main_field():
         self.clicked = 1
         self.flagged = 2
         self.question = 3
+        self.cheat_tile = 4
         self.clickedCount = 0
         self.correctFlagCount = 0
         self.flagCount = 0
         self.labels = {
-            "mines": Label(self.frame, text="Mines: 0"),
+            "mines": Label(self.frame, text="Mines: "+str(self.data.mines)),
             "flags": Label(self.frame, text="Flags: 0")
         }
-        #
+
+        self.labels["mines"].grid(row=self.data.len_ + 1,
+                                  column=0, columnspan=int(self.data.width / 2))
+        self.labels["flags"].grid(row=self.data.len_ + 2, column=0,
+                                  columnspan=int(self.data.width / 2))
+        Button(tk, text="Reset", command=lambda: [self.reset()]).pack()
+        Button(tk, text="Cheat", command=lambda: [self.cheat()]).pack()
         self.start_game()
 
-    # TODO: rozpoczęcie nowej gry
+    def cheat(self):
+        for i in self.tiles.values():
+            for tile in i.values():
+                if tile["isMine"] == True:
+                    tile["button"].config(image=self.images["mina"])
+                    tile["state"] = self.cheat_tile
+
     def start_game(self):
-        self.frame.pack()
-        self.buttons = []
         self.tiles = dict({})
         self.mines = 0
         self.x = None
         self.y = None
+        self.buttons = []
         self.clickedCount = 0
         self.correctFlagCount = 0
         self.flagCount = 0
-        self.labels = {
-            "mines": Label(self.frame, text="Mines: 0"),
-            "flags": Label(self.frame, text="Flags: 0")
-        }
-        self.labels["mines"].grid(row=self.data.len_ + 1,
-                                  column=0, columnspan=int(self.data.width / 2))
-        self.labels["flags"].grid(row=self.data.len_ + 1, column=int(self.data.width / 2) - 1,
-                                  columnspan=int(self.data.width / 2))
-
         foobar = np.full((self.data.width, self.data.len_), False)
-        # creating list of indices
         idx = []
         for i in range(self.data.mines):
             idx.append([np.random.randint(self.data.width), np.random.randint(self.data.len_)])
@@ -128,11 +130,15 @@ class Main_field():
     def onRightClickWrapper(self, x, y):
         return lambda Button: self.onRightClick(self.tiles[x][y])
 
+    def reset(self):
+        self.refreshLabels()
+        self.start_game()
+
     def onClick(self, tile):
         if tile["isMine"] == True:
             # end game
-            self.gameOver(False)
-            return
+            return self.gameOver(False)
+
         # change image
         if tile["mines"] == 0:
             tile["button"].config(image=self.images["click"])
@@ -140,42 +146,38 @@ class Main_field():
         else:
             tile["button"].config(image=self.images[str(tile["mines"])])
 
-        if tile["state"] == self.clicked:
+        if tile["state"] != self.clicked:
             tile["state"] = self.clicked
             self.clickedCount += 1
         if self.clickedCount == (self.data.len_ * self.data.width) - self.mines:
-            self.gameOver(True)
+            return self.gameOver(True)
 
     def onRightClick(self, tile):
         # if not clicked
-        if tile["state"] == self.nonclicked:
+        if tile["state"] == self.nonclicked or tile["state"] == self.cheat_tile:
             tile["button"].config(image=self.images["flag"])
             tile["state"] = self.flagged
-            #tile["button"].unbind("<Button-1>")
             # if a mine
             if tile["isMine"] == True:
                 self.correctFlagCount += 1
             self.flagCount += 1
             if self.correctFlagCount == self.mines:
-                self.gameOver(True)
+                return self.gameOver(True)
             self.refreshLabels()
-        # if flagged, unflag
         elif tile["state"] == self.flagged:
             tile["button"].config(image=self.images["question"])
             tile["button"].bind(self.clicked, self.onClickWrapper(tile["coords"]["x"], tile["coords"]["y"]))
             tile["state"] = self.question
+            if tile["isMine"] == True:
+                self.correctFlagCount -= 1
+            self.flagCount -= 1
             self.refreshLabels()
 
         elif tile["state"] == self.question:
             tile["button"].config(image=self.images["plain"])
             tile["state"] = self.nonclicked
             tile["button"].bind(self.clicked, self.onClickWrapper(tile["coords"]["x"], tile["coords"]["y"]))
-            # if a mine
-            if tile["isMine"] == True:
-                self.correctFlagCount -= 1
-            self.flagCount -= 1
             self.refreshLabels()
-
 
     def clearSurroundingTiles(self, id):
         queue = deque([id])
@@ -184,42 +186,35 @@ class Main_field():
             parts = key.split("_")
             x = int(parts[0])
             y = int(parts[1])
-        # Dodaje sobie obiekty do sąsiadów
+        # czyszcze sąsiadów
             for tile in self.getNeighbors(x, y):
                 self.clearTile(tile, queue)
 
     def clearTile(self, tile, queue):
         if tile["state"] != self.nonclicked:
             return
-
         if tile["mines"] == 0:
             tile["button"].config(image=self.images["click"])
             queue.append(tile["id"])
         else:
-            tile["button"].config(image=self.images[str(tile["mines"] )])
+            tile["button"].config(image=self.images[str(tile["mines"])])
 
         tile["state"] = self.clicked
         self.clickedCount += 1
-
-    def restart(self):
-        self.start_game()
-        self.refreshLabels()
+        if self.clickedCount + self.mines == self.data.width*self.data.len_:
+            self.gameOver(True)
 
     def refreshLabels(self):
-        self.labels["flags"].config(text="Flags: " + str(self.flagCount))
-        self.labels["mines"].config(text="Mines: " + str(self.mines))
+        self.labels["flags"].config(text="Flags " + str(self.flagCount))
+        self.labels["mines"].config(text="Mines " + str(self.mines))
 
     def getNeighbors(self, x, y):
+        """Get all neighbors of the tile passed to function"""
         neighbors = []
         coords = [
-            {"x": x-1,  "y": y-1},  #top right
-            {"x": x-1,  "y": y},    #top middle
-            {"x": x-1,  "y": y+1},  #top left
-            {"x": x,    "y": y-1},  #left
-            {"x": x,    "y": y+1},  #right
-            {"x": x+1,  "y": y-1},  #bottom right
-            {"x": x+1,  "y": y},    #bottom middle
-            {"x": x+1,  "y": y+1},  #bottom left
+            {"x": x-1,  "y": y-1},  {"x": x-1,  "y": y},  {"x": x-1,  "y": y+1},  #top
+            {"x": x,    "y": y-1},  {"x": x,    "y": y+1},  #middle
+            {"x": x+1,  "y": y-1},  {"x": x+1,  "y": y},  {"x": x+1,  "y": y+1},  #bottom
         ]
         for n in coords:
             try:
@@ -229,6 +224,7 @@ class Main_field():
         return neighbors
 
     def gameOver(self, won):
+        """End of the game end destroying the frame"""
         for x in range(0, self.data.len_):
             for y in range(0, self.data.width):
                 if self.tiles[x][y]["isMine"] == False and self.tiles[x][y]["state"] == self.flagged:
@@ -239,5 +235,6 @@ class Main_field():
         msg = "You Win!" if won else "You Lose!"
         messagebox.showinfo(msg)
         self.tk.update()
-        self.frame.destroy()
-        self.tk.destroy()
+        #self.frame.destroy()
+        #self.tk.destroy()
+        return "Ended"

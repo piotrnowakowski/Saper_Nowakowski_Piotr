@@ -12,35 +12,13 @@ def main():
     root = Tk()
     data = get_data(root)
     root.mainloop()
-    del root
+    #del root
     root = Tk()
     main_window = Main_field(root, data)
     root.mainloop()
-    msg = "Play again?"
-    res = messagebox.askyesno("Game Over", message=msg)
-    del root, data, main_window
-    if res:
-        main()
-    else:
-        quit()
+    del root, main_window
+    quit()
 main()
-
-
-# TODO: losowe rozmieszczenie min
-
-# TODO: kliknięcie w dane pole
-
-# TODO: kliknięcie w bombę
-
-# TODO: kliknięcie w puste pole
-# TODO: znikanie tam gdzie nie ma obok bomb
-# TODO: wyświetlanie liczby bomb przy polach wolnych na miejscach brzegowych
-
-# TODO: oznaczenie miny
-# TODO: drugie kliknięcie zmiana z tu jest na tu może
-# TODO: trzecie kliknięcie znika oznaczenie
-
-# TODO: zakończenie gry : oznaczenie wszystkich bomb, kliknięcie wszystkich pustych pól bez miny
 
 # TODO: cheat - kliknięcie x y Z Z y   ściemnienie wszystkich pól gdzie sa bomby
 
